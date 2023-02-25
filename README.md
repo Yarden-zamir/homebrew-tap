@@ -1,5 +1,8 @@
 # Yarden-zamir's tap
 
+<!-- project_table_start -->
+<!-- project_table_end -->
+
 ## How do I install these formulae?
 
 `brew install yarden-zamir/tap/<formula>`
