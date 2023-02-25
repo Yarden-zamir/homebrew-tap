@@ -1,10 +1,10 @@
-# Yarden-zamir Wrap
+# Yarden-zamir's tap
 
 ## How do I install these formulae?
 
-`brew install yarden-zamir/wrap/<formula>`
+`brew install yarden-zamir/tap/<formula>`
 
-Or `brew tap yarden-zamir/wrap` and then `brew install <formula>`.
+Or `brew tap yarden-zamir/tap` and then `brew install <formula>`.
 
 ## Documentation
 
