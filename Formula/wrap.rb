@@ -1,8 +1,8 @@
 class Wrap < Formula
   desc "Generates 'wraps' for functions in any language using 'processors'"
   homepage "https://github.com/Yarden-zamir/wrap"
-  url "https://github.com/Yarden-zamir/homebrew-wrap/archive/refs/tags/0.1.0.tar.gz"
-  sha256 "04a912d65cc8aecf8a7b542ec506e4aaf25a2b466e5d3aed21e00066ef045cbe"
+  url "https://github.com/Yarden-zamir/WRAP/archive/refs/tags/0.1.0.tar.gz"
+  sha256 "c55de042163e6dcb8936f890a7bdd2432fbcfdb238639f30fd2748c1008eaed5"
   license ""
   depends_on "python@3.10"
   def install
