@@ -6,7 +6,8 @@ class Wrap < Formula
   license ""
   depends_on "python@3.10"
   def install
-    system "./configure", *std_configure_args, "--disable-silent-rules"
+    # system "./configure", *std_configure_args, "--disable-silent-rules"
+    bin.install "wrap"
   end
   test do
     system bin/"wrap", "--help"
