@@ -12,7 +12,8 @@ class Wrap < Formula
 
   def install
     bin.install "wrap.py" => "wrap"
-bin.install "base_processors/generic_argparse_processor.py" => "wrap_generic_argparse_processor"
+FileUtils.cp_r "base_processors/generic_argparse_processor.py", "wrap_generic_argparse_processor"
+bin.install "wrap_generic_argparse_processor"
 bin.install "base_processors"
   end
 end
