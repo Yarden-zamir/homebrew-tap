@@ -1,6 +1,10 @@
 # Yarden-zamir's tap
 
 <!-- project_table_start -->
+| Project                                      | Description                                                        | Install             |
+| -------------------------------------------- | ------------------------------------------------------------------ | ------------------- |
+| [wrap](https://github.com/Yarden-zamir/WRAP) | Generates 'wraps' for functions in any language using 'processors' | `brew install wrap` |
+| [wrap](https://github.com/Yarden-zamir/wrap) | Generates 'wraps' for functions in any language using 'processors' | `brew install wrap` |
 <!-- project_table_end -->
 
 ## How do I install these formulae?
