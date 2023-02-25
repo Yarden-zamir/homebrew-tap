@@ -1,4 +1,5 @@
 # Yarden-zamir's tap
+`brew tap yarden-zamir/tap`
 
 <!-- project_table_start -->
 | Project                                      | Description                                                        | Install             |
