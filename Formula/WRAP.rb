@@ -5,8 +5,8 @@
 class Wrap < Formula
   desc "Generates 'wraps' for functions in any language using 'processors'"
   homepage "https://github.com/Yarden-zamir/WRAP"
-  url "https://github.com/Yarden-zamir/WRAP/archive/v0.2.17.tar.gz"
-  sha256 "936aa28ec40ecc8edfab69ee99d4f892b83906e4a0ccb360e9f56cbb57d8cf20"
+  url "https://github.com/Yarden-zamir/WRAP/archive/v0.2.18.tar.gz"
+  sha256 "126964b14610ea3993cad006a29d0532cc2fc08674af29e920baa1afbddb1b0d"
 
   depends_on "python@3.10"
 
@@ -15,6 +15,6 @@ class Wrap < Formula
 FileUtils.cp_r "base_processors/generic_argparse_processor.py", "wrap_generic_argparse_processor.py"
 bin.install "wrap_generic_argparse_processor.py"
 bin.install "base_processors"
-bin.install "example1/input" => "example1/input"
+bin.install "example1"
   end
 end
