@@ -5,14 +5,13 @@
 class Wrap < Formula
   desc "Generates 'wraps' for functions in any language using 'processors'"
   homepage "https://github.com/Yarden-zamir/WRAP"
-  url "https://github.com/Yarden-zamir/WRAP/archive/v0.2.30.tar.gz"
-  sha256 "67ac06596a6a7c53f5358e786ca04b63e69a3b113f9857ee1b8c2d8d62267b23"
+  url "https://github.com/Yarden-zamir/WRAP/archive/v0.2.31.tar.gz"
+  sha256 "484633bd59b9d32144efc6e8ca1f84a252c6c3f25877f1597e8e181b9f5bccca"
 
   depends_on "python@3.11"
 
   def install
-    virtualenv_install_with_resources
-libexec.install Dir["*"]
+    libexec.install Dir["*"]
 bin.write_exec_script libexec/"wrap"
   end
 end
