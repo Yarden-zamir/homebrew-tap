@@ -5,8 +5,8 @@
 class Wrap < Formula
   desc "Generates 'wraps' for functions in any language using 'processors'"
   homepage "https://github.com/Yarden-zamir/WRAP"
-  url "https://github.com/Yarden-zamir/WRAP/archive/v0.2.53.tar.gz"
-  sha256 "665d746d2796db1ad8c5f4a3aa1cb07d96e817bfab70de095bc7d0a6b6e6f8a1"
+  url "https://github.com/Yarden-zamir/WRAP/archive/v0.2.54.tar.gz"
+  sha256 "aa0daf711966d32d72f52a16455e9d7260f64cf57618fdc867a63470428b0242"
   license "MIT"
 
   depends_on "python@3.11"
@@ -14,5 +14,6 @@ class Wrap < Formula
   def install
     libexec.install Dir["*"]
 bin.write_exec_script libexec/"wrap"
+(libexec/"VERSION").write version
   end
 end
