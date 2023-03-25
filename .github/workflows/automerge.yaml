@@ -40,5 +40,5 @@ jobs:
       if: ${{ contains(github.event.pull_request.labels.*.name, 'auto-merge') }}
       run: gh pr merge --merge --auto "1"
       env:
-        GH_TOKEN: ${{ github.token }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
