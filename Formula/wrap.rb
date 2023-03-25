@@ -16,4 +16,13 @@ class Wrap < Formula
     bin.write_exec_script libexec/"wrap"
     (libexec/"VERSION").write version
   end
+  def caveats
+    <<~EOS
+      To activate wrap, run the following command:
+        wrap install
+      You can also use
+        wrap install --help
+      for custom installation.
+    EOS
+  end
 end
