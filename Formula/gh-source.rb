@@ -15,4 +15,11 @@ class GhSource < Formula
     pkgshare.install "gh-source.zsh"
     pkgshare.install "zsh-completion"
   end
+
+  def caveats
+    <<~EOS
+      To activate gh-source, add the following at the end of your .zshrc:
+        source #{opt_pkgshare}/gh-source.zsh
+    EOS
+  end
 end
