@@ -25,6 +25,7 @@ jobs:
         if: ${{ contains(steps.pr.outputs.result, '/add-label auto-merge') }}
         with:
           labels: auto-merge
+          github_token: ${{ github.token }}
   enable_automerge:
     needs: label
     runs-on: ubuntu-latest
