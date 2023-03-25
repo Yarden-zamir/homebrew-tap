@@ -10,13 +10,13 @@ jobs:
     steps:
       - name: Label PR as auto-merge on tap repository
         uses: actions-ecosystem/action-add-labels@v1
-        if: ${{ startsWith(github.event.comment.body, '/add-label auto-merge') }}
+        if: ${{ contains(github.event.comment.body, '/add-label auto-merge') }}
         with:
           labels: auto-merge
   enable_automerge:
     needs: label
     runs-on: ubuntu-latest
-    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && contains(github.event.pull_request.labels.*.name, 'auto-merge') }}
+    if: ${{ contains(github.event.pull_request.labels.*.name, 'auto-merge') }}
     steps:
     - name: Enable Pull Request Automerge
       run: gh pr merge --merge --auto "1"
