@@ -5,12 +5,12 @@
 class GhSource < Formula
   desc "Plugin manager for people who don't like plugin managers"
   homepage "https://github.com/Yarden-zamir/gh-source"
-  url "https://github.com/Yarden-zamir/gh-source/archive/v0.0.3.tar.gz"
-  sha256 "f3fd97c518a962b4e79c70ad3578b690717986da1fe50c5fbcef55c73533f27f"
+  url "https://github.com/Yarden-zamir/gh-source/archive/v0.0.4.tar.gz"
+  sha256 "846e1d82aed9136603942939854a05f92162fb789fdc288b956d9f35bd9296c7"
   license "MIT"
 
   def install
     libexec.install Dir["*"]
-bin.write_exec_script libexec/"gh-source.zsh"
+bin.install_symlink libexec/gh-source.zsh
   end
 end
