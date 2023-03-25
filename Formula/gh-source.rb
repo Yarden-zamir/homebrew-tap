@@ -13,6 +13,6 @@ class GhSource < Formula
 
   def install
     pkgshare.install "gh-source.zsh"
-pkgshare.install "zsh-completion"
+    pkgshare.install "zsh-completion"
   end
 end
