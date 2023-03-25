@@ -28,6 +28,8 @@ jobs:
           labels: auto-merge
           github_token: ${{ github.token }}
           number: ${{ github.event.pull_request.number }}
+      - name: Wait for label to be added
+        run: sleep 4
 
   enable_automerge:
     needs: label
