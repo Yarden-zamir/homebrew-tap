@@ -5,9 +5,11 @@
 class GhSource < Formula
   desc "Plugin manager for people who don't like plugin managers"
   homepage "https://github.com/Yarden-zamir/gh-source"
-  url "https://github.com/Yarden-zamir/gh-source/archive/v0.0.5.tar.gz"
-  sha256 "74e1c4c87599762910637fffe8b0d23d38d1ef48d98122fe51562ab6b8bf39e3"
+  url "https://github.com/Yarden-zamir/gh-source/archive/v0.0.6.tar.gz"
+  sha256 "05817477a0e319fff28354a3505dd71f03d1bea9ef4b3e2f5f4c0e01105aada5"
   license "MIT"
+
+  depends_on "gh"
 
   def install
     bin.install gh-source.zsh
