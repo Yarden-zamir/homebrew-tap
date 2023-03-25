@@ -1,0 +1,25 @@
+# enable automerge on pull requests that have the label "auto-merge"
+name: automerge
+
+on:
+  pull_request_target:
+  
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Label PR as auto-merge on tap repository
+        uses: actions-ecosystem/action-add-labels@v1
+        if: ${{ startsWith(github.event.comment.body, '/add-label auto-merge') }}
+        with:
+          labels: auto-merge
+  enable_automerge:
+    needs: label
+    runs-on: ubuntu-latest
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && contains(github.event.pull_request.labels.*.name, 'auto-merge') }}
+    steps:
+    - name: Enable Pull Request Automerge
+      run: gh pr merge --merge --auto "1"
+      env:
+        GH_TOKEN: ${{ secrets.TOKEN }}
+
