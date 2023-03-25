@@ -16,6 +16,7 @@ class Wrap < Formula
     bin.write_exec_script libexec/"wrap"
     (libexec/"VERSION").write version
   end
+  
   def caveats
     <<~EOS
       To activate wrap, run the following command:
