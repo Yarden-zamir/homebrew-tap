@@ -8,9 +8,21 @@ jobs:
   label:
     runs-on: ubuntu-latest
     steps:
+      - name: Get PR description
+        uses: actions/github-script@v3
+        id: pr
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const pr = await github.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number
+            })
+            return pr.data.body
       - name: Label PR as auto-merge on tap repository
         uses: actions-ecosystem/action-add-labels@v1
-        if: ${{ contains(github.event.comment.body, '/add-label auto-merge') }}
+        if: ${{ contains(steps.pr.outputs.result, '/add-label auto-merge') }}
         with:
           labels: auto-merge
   enable_automerge:
