@@ -5,8 +5,8 @@
 class Wrap < Formula
   desc "Generates 'wraps' for functions in any language using 'processors'"
   homepage "https://github.com/Yarden-zamir/WRAP"
-  url "https://github.com/Yarden-zamir/WRAP/archive/v0.2.82.tar.gz"
-  sha256 "9cd8bd39061b077504e8da66e48c98b9dae3d1bc326db608b3a66efa318f2661"
+  url "https://github.com/Yarden-zamir/WRAP/archive/v0.2.85.tar.gz"
+  sha256 "4410aae8b44ba4950a26986dc8fb4d85070629b3ee7110fcdccc35e7f9cd3e33"
   license "MIT"
 
   depends_on "python@3.11"
