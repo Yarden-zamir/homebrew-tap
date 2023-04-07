@@ -5,8 +5,8 @@
 class GhSource < Formula
   desc "Plugin manager for people who don't like plugin managers"
   homepage "https://github.com/Yarden-zamir/gh-source"
-  url "https://github.com/Yarden-zamir/gh-source/archive/v0.0.19.tar.gz"
-  sha256 "84a6c719e633c24e9b66476341c21edb476c962159287bc7b07c1ec31f10dd97"
+  url "https://github.com/Yarden-zamir/gh-source/archive/v0.0.20.tar.gz"
+  sha256 "84b5f4af0d85a05783313a95a17133117eef27235b593837d74074884b332f1f"
   license "MIT"
 
   depends_on "gh"
