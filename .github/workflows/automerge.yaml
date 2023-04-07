@@ -1,4 +1,4 @@
-# enable automerge on pull requests that have the label "auto-merge"
+# Automerge prs with label "auto-merge" or with "/auto-merge" in the description
 name: automerge
 
 on:
