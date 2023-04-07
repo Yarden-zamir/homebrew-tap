@@ -21,24 +21,10 @@ jobs:
               pull_number: context.payload.pull_request.number
             })
             return pr.data.body
-      - name: Label PR as auto-merge on tap repository
-        uses: actions-ecosystem/action-add-labels@v1
-        if: ${{ contains(steps.pr.outputs.result, '/add-label auto-merge') }}
-        with:
-          labels: auto-merge
-          github_token: ${{ github.token }}
-          number: ${{ github.event.pull_request.number }}
-      - name: Wait for label to be added
-        run: sleep 4
-
-  enable_automerge:
-    needs: label
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - name: Enable Pull Request Automerge
-      if: ${{ contains(github.event.pull_request.labels.*.name, 'auto-merge') }}
-      run: gh pr merge --merge --auto ${{ github.event.pull_request.number }} --body "Merged by auto-merge action."
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+      - uses: actions/checkout@v3
+        if: ${{ contains(steps.pr.outputs.result, '/auto-merge') }} || ${{ contains(github.event.pull_request.labels.*.name, 'auto-merge') }}
+      - name: Enable Pull Request Automerge
+        if: ${{ contains(steps.pr.outputs.result, '/auto-merge') }} || ${{ contains(github.event.pull_request.labels.*.name, 'auto-merge') }}
+        run: gh pr merge --merge --auto ${{ github.event.pull_request.number }} --body "Merged by auto-merge action."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
