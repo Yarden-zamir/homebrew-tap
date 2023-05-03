@@ -11,5 +11,4 @@ class ZshActCompletion < Formula
   def install
     zsh_completion.install "_act"
   end
-
 end
