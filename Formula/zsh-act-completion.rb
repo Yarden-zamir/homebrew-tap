@@ -9,6 +9,6 @@ class ZshActCompletion < Formula
   license "MIT"
 
   def install
-    zsh_completion.install "_act"
+    zsh_completion.install "zsh/_act" => "_act"
   end
 end
