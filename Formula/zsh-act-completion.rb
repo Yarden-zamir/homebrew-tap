@@ -8,16 +8,8 @@ class ZshActCompletion < Formula
   sha256 "1897e31d7a516a159ec32a04bd7bef97250ca04503e6c24400c2d91e4913ce63"
   license "MIT"
 
-  depends_on "gh"
-
   def install
     zsh_completion.install "_act"
   end
 
-  def caveats
-    <<~EOS
-      zsh completions have been installed to:
-        /opt/homebrew/share/zsh/site-functions
-    EOS
-  end
 end
