@@ -14,10 +14,4 @@ class ZshActCompletion < Formula
     zsh_completion.install "_act"
   end
 
-  def caveats
-    <<~EOS
-      zsh completions have been installed to:
-        /opt/homebrew/share/zsh/site-functions
-    EOS
-  end
 end
