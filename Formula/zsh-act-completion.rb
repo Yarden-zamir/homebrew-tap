@@ -4,8 +4,8 @@
 class ZshActCompletion < Formula
   desc "Zsh completions for act (for github)"
   homepage "https://github.com/Yarden-zamir/zsh-act-completion"
-  url "https://github.com/Yarden-zamir/zsh-act-completion/archive/v0.0.27.tar.gz"
-  sha256 "e51ce19c04f4a32be963ba8fe2c2f3b5cefeee44522adb2c0b3ebc4c1430dc27"
+  url "https://github.com/Yarden-zamir/zsh-act-completion/archive/v0.0.31.tar.gz"
+  sha256 "8b6253acf263cebbf6d019507d3408924e0f5dd5cf041eff6934d6ec751c75da"
   license "MIT"
 
   def install
