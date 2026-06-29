@@ -1,27 +1,27 @@
-# Automerge prs with label "auto-merge" or with "/auto-merge" in the description
+# Automerge PRs with label "auto-merge" or with "/auto-merge" in the description.
 name: automerge
 
 on:
   pull_request_target:
-  
+
 jobs:
   label:
-    permissions: write-all  
+    permissions: write-all
     runs-on: ubuntu-latest
     steps:
       - name: Get PR description
-        uses: actions/github-script@v3
+        uses: actions/github-script@v7
         id: pr
         with:
           github-token: ${{ github.token }}
           script: |
-            const pr = await github.pulls.get({
+            const pr = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: context.payload.pull_request.number
-            })
-            return pr.data.body
-      - uses: actions/checkout@v3
+              pull_number: context.payload.pull_request.number,
+            });
+            return pr.data.body;
+      - uses: actions/checkout@v4
         if: ${{ contains(steps.pr.outputs.result, '/auto-merge') }} || ${{ contains(github.event.pull_request.labels.*.name, 'auto-merge') }}
       - name: Enable Pull Request Automerge
         if: ${{ contains(steps.pr.outputs.result, '/auto-merge') }} || ${{ contains(github.event.pull_request.labels.*.name, 'auto-merge') }}
