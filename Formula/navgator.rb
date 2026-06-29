@@ -10,6 +10,7 @@ class Navgator < Formula
   head "https://github.com/Yarden-zamir/Navgator.git", branch: "main"
 
   depends_on "rust" => :build
+  depends_on "erdtree"
   depends_on "gh"
 
   def install
