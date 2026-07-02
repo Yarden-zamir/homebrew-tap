@@ -22,9 +22,32 @@ jobs:
             });
             return pr.data.body;
       - uses: actions/checkout@v4
-        if: ${{ contains(steps.pr.outputs.result, '/auto-merge') }} || ${{ contains(github.event.pull_request.labels.*.name, 'auto-merge') }}
+        if: contains(steps.pr.outputs.result, '/auto-merge') || contains(github.event.pull_request.labels.*.name, 'auto-merge')
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
+      - name: Install uv
+        if: github.event.pull_request.head.repo.full_name == github.repository && (contains(steps.pr.outputs.result, '/auto-merge') || contains(github.event.pull_request.labels.*.name, 'auto-merge'))
+        uses: astral-sh/setup-uv@v6
+      - name: Regenerate README table
+        if: github.event.pull_request.head.repo.full_name == github.repository && (contains(steps.pr.outputs.result, '/auto-merge') || contains(github.event.pull_request.labels.*.name, 'auto-merge'))
+        run: uv run --no-project scripts/update_readme_table.py
+      - name: Commit README table update
+        if: github.event.pull_request.head.repo.full_name == github.repository && (contains(steps.pr.outputs.result, '/auto-merge') || contains(github.event.pull_request.labels.*.name, 'auto-merge'))
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          if [ -n "$(git status --porcelain README.md)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add README.md
+            git commit -m "chore: update README formulae table"
+            git push origin "HEAD:$HEAD_REF"
+          else
+            echo "README already up to date"
+          fi
       - name: Enable Pull Request Automerge
-        if: ${{ contains(steps.pr.outputs.result, '/auto-merge') }} || ${{ contains(github.event.pull_request.labels.*.name, 'auto-merge') }}
+        if: contains(steps.pr.outputs.result, '/auto-merge') || contains(github.event.pull_request.labels.*.name, 'auto-merge')
         run: gh pr merge --merge --auto ${{ github.event.pull_request.number }} --body "Merged by auto-merge action."
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
