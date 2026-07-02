@@ -2,21 +2,19 @@
 # frozen_string_literal: true
 
 class Navgator < Formula
-  desc "Rust TUI tools for project navigation and GitHub issue exploration"
-  homepage "https://github.com/Yarden-zamir/Navgator"
-  url "https://github.com/Yarden-zamir/Navgator/archive/refs/tags/v0.2.0.tar.gz"
-  sha256 "917858ae0379b440e35d81f17e1e4cb01a147282b57b5af86666c8d479c1dfb5"
+  desc "Rust TUI project navigator with Git worktree and preview support"
+  homepage "https://github.com/Yarden-zamir/navgator"
+  url "https://github.com/Yarden-zamir/navgator/archive/refs/tags/v0.1.0.tar.gz"
+  sha256 "cbb101714e250bc872b6e08339b894b776b3580c90bae595623fdb8de30868a3"
   license "MIT"
-  head "https://github.com/Yarden-zamir/Navgator.git", branch: "main"
+  head "https://github.com/Yarden-zamir/navgator.git", branch: "main"
 
   depends_on "rust" => :build
   depends_on "erdtree"
   depends_on "gh"
 
   def install
-    system "cargo", "install", *std_cargo_args(path: "crates/navgator-navigate")
-    system "cargo", "install", *std_cargo_args(path: "crates/navgator-issues")
-    bin.install_symlink "navgator-navigate" => "navgator"
+    system "cargo", "install", *std_cargo_args
     pkgshare.install "scripts/navgator.zsh"
   end
 
@@ -31,6 +29,6 @@ class Navgator < Formula
   end
 
   test do
-    assert_match "Usage:", shell_output("#{bin}/navgator-navigate --help 2>&1")
+    assert_match "Usage:", shell_output("#{bin}/navgator --help 2>&1")
   end
 end
