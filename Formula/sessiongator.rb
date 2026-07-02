@@ -5,7 +5,7 @@ class Sessiongator < Formula
   desc "Rust TUI browser for Claude Code and opencode sessions"
   homepage "https://github.com/Yarden-zamir/sessiongator"
   url "https://github.com/Yarden-zamir/sessiongator/archive/refs/tags/v0.1.0.tar.gz"
-  sha256 "671d5143dff01fda67b6ddd354bc392f42d2a1484154ea88d8f85db4019ae8cd"
+  sha256 "9feeb488ee85fc2bc317685ec21e3a4b22041f00974c6a6d6fb57fd0c8485e0c"
   license "MIT"
   head "https://github.com/Yarden-zamir/sessiongator.git", branch: "main"
 
