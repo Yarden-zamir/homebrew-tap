@@ -4,8 +4,8 @@
 class Aism < Formula
   desc "Browse, search, and resume Claude Code and opencode sessions with fzf"
   homepage "https://github.com/Yarden-zamir/aism"
-  url "https://github.com/Yarden-zamir/aism/archive/refs/tags/v0.1.0.tar.gz"
-  sha256 "674184e6748ee24ec36cd6c61046b6d39263f84aac5811889a34204e08b26083"
+  url "https://github.com/Yarden-zamir/aism/archive/refs/tags/v0.1.2.tar.gz"
+  sha256 "2ac5afb765d981acc2297c67f11fc1cb7fb424465e449f1254b1b064dc002e1e"
   license "MIT"
 
   depends_on "fzf"
