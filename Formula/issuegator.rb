@@ -5,7 +5,7 @@ class Issuegator < Formula
   desc "Rust TUI GitHub issue explorer for the current repository"
   homepage "https://github.com/Yarden-zamir/issuegator"
   url "https://github.com/Yarden-zamir/issuegator/archive/refs/tags/v0.1.0.tar.gz"
-  sha256 "092dad98163e36e73c8087c11d82b10e6325a14861d9a5bc9823b024aa865335"
+  sha256 "671fb92412678a541c714803f24b777409847c6c9b8c5c99333e4b649fc3f7b7"
   license "MIT"
   head "https://github.com/Yarden-zamir/issuegator.git", branch: "main"
 
