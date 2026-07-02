@@ -1,10 +1,14 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.10"
+# dependencies = []
+# ///
 """Regenerate the formulae table in README.md between the marker comments.
 
 Reads every Formula/*.rb, pulls its `desc` and `homepage`, and rewrites the
 aligned Markdown table between `<!-- project_table_start -->` and
-`<!-- project_table_end -->`. Stdlib only; run with `uv run --no-project` or
-plain `python3`.
+`<!-- project_table_end -->`. Stdlib only; run with `uv run --no-project
+scripts/update_readme_table.py` or `./scripts/update_readme_table.py`.
 """
 
 from __future__ import annotations

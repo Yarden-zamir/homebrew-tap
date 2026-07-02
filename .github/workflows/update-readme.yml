@@ -24,7 +24,7 @@ jobs:
         uses: astral-sh/setup-uv@v6
 
       - name: Regenerate README table
-        run: uv run --no-project python scripts/update_readme_table.py
+        run: uv run --no-project scripts/update_readme_table.py
 
       - name: Commit if changed
         run: |

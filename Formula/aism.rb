@@ -19,7 +19,7 @@ class Aism < Formula
     (bin/"aism").write <<~SH
       #!/bin/bash
       export PYTHONPATH="#{libexec}${PYTHONPATH:+:$PYTHONPATH}"
-      exec "#{formula_opt_bin("uv")}/uv" run --no-project --python 3.12 python -m aism "$@"
+      exec "#{formula_opt_bin("uv")}/uv" run --no-project --python 3.12 -m aism "$@"
     SH
     chmod 0755, bin/"aism"
   end
