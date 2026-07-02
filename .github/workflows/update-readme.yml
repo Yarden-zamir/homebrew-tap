@@ -1,0 +1,39 @@
+name: Update README table
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - Formula/**
+      - scripts/update_readme_table.py
+      - .github/workflows/update-readme.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Regenerate README table
+        run: uv run --no-project python scripts/update_readme_table.py
+
+      - name: Commit if changed
+        run: |
+          if [ -n "$(git status --porcelain README.md)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add README.md
+            git commit -m "chore: update README formulae table"
+            git push
+          else
+            echo "README already up to date"
+          fi
