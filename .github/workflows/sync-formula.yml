@@ -129,7 +129,7 @@ jobs:
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE/tap"
           git config --global --add safe.directory "$(brew --repository)"
-          brew tap yarden-zamir/tap "$GITHUB_WORKSPACE/tap"
+          brew tap-info --installed yarden-zamir/tap >/dev/null 2>&1 || brew tap yarden-zamir/tap https://github.com/Yarden-zamir/homebrew-tap
           brew trust --tap yarden-zamir/tap
 
       - name: Install Homebrew Bundler RubyGems
