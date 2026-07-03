@@ -1,6 +1,34 @@
 name: sync formula
 
 on:
+  workflow_dispatch:
+    inputs:
+      formula:
+        required: true
+        type: string
+      tag:
+        required: true
+        type: string
+      repository:
+        required: true
+        type: string
+      template_path:
+        required: false
+        type: string
+        default: ""
+      release_url:
+        required: false
+        type: string
+        default: ""
+      pull_request_body:
+        required: false
+        type: string
+        default: "/auto-merge"
+      commit_message:
+        required: false
+        type: string
+        default: ""
+
   workflow_call:
     inputs:
       formula:
@@ -47,8 +75,8 @@ jobs:
       RELEASE_URL: ${{ inputs.release_url }}
       PR_BODY: ${{ inputs.pull_request_body }}
       COMMIT_MESSAGE: ${{ inputs.commit_message }}
-      GH_TOKEN: ${{ secrets.token }}
-      FORMULA_SYNC_TOKEN: ${{ secrets.token }}
+      GH_TOKEN: ${{ secrets.token || secrets.TOKEN || github.token }}
+      FORMULA_SYNC_TOKEN: ${{ secrets.token || secrets.TOKEN || github.token }}
     steps:
       - name: Checkout publisher source
         uses: actions/checkout@v4
@@ -56,7 +84,7 @@ jobs:
           repository: ${{ inputs.repository || github.repository }}
           ref: ${{ inputs.tag }}
           path: publisher
-          token: ${{ secrets.token }}
+          token: ${{ secrets.token || secrets.TOKEN || github.token }}
 
       - name: Checkout tap
         uses: actions/checkout@v4
@@ -64,7 +92,7 @@ jobs:
           repository: Yarden-zamir/homebrew-tap
           ref: main
           path: tap
-          token: ${{ secrets.token }}
+          token: ${{ secrets.token || secrets.TOKEN || github.token }}
 
       - name: Install uv
         uses: astral-sh/setup-uv@v6
