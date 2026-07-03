@@ -78,6 +78,10 @@ jobs:
       GH_TOKEN: ${{ secrets.token || secrets.TOKEN || github.token }}
       FORMULA_SYNC_TOKEN: ${{ secrets.token || secrets.TOKEN || github.token }}
     steps:
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@main
+
       - name: Checkout publisher source
         uses: actions/checkout@v4
         with:
@@ -119,10 +123,6 @@ jobs:
       - name: Regenerate README table
         working-directory: tap
         run: uv run --no-project scripts/update_readme_table.py
-
-      - name: Set up Homebrew
-        id: set-up-homebrew
-        uses: Homebrew/actions/setup-homebrew@main
 
       - name: Trust Git repositories
         working-directory: tap
