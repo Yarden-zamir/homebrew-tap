@@ -17,6 +17,6 @@ class Issuegator < Formula
   end
 
   test do
-    assert_predicate bin/"issuegator", :exist?
+    assert_path_exists bin/"issuegator"
   end
 end
