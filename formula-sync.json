@@ -1,0 +1,39 @@
+{
+  "formulae": {
+    "aism": {
+      "repository": "Yarden-zamir/aism",
+      "template_path": ".homebrew/aism.rb",
+      "template_ref": "main"
+    },
+    "gh-source": {
+      "repository": "Yarden-zamir/gh-source",
+      "template_path": ".homebrew/gh-source.rb",
+      "template_ref": "main"
+    },
+    "issuegator": {
+      "repository": "Yarden-zamir/issuegator",
+      "template_path": ".homebrew/issuegator.rb",
+      "template_ref": "main"
+    },
+    "navgator": {
+      "repository": "Yarden-zamir/navgator",
+      "template_path": ".homebrew/navgator.rb",
+      "template_ref": "main"
+    },
+    "sessiongator": {
+      "repository": "Yarden-zamir/sessiongator",
+      "template_path": ".homebrew/sessiongator.rb",
+      "template_ref": "main"
+    },
+    "wrap": {
+      "repository": "Yarden-zamir/WRAP",
+      "template_path": ".homebrew/wrap.rb",
+      "template_ref": "main"
+    },
+    "zsh-act-completion": {
+      "repository": "Yarden-zamir/zsh-act-completion",
+      "template_path": ".homebrew/zsh-act-completion.rb",
+      "template_ref": "main"
+    }
+  }
+}

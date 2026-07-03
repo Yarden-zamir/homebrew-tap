@@ -1,0 +1,153 @@
+name: sync formula
+
+on:
+  workflow_call:
+    inputs:
+      formula:
+        required: true
+        type: string
+      tag:
+        required: true
+        type: string
+      repository:
+        required: false
+        type: string
+        default: ""
+      template_path:
+        required: false
+        type: string
+        default: ""
+      release_url:
+        required: false
+        type: string
+        default: ""
+      pull_request_body:
+        required: false
+        type: string
+        default: "/auto-merge"
+      commit_message:
+        required: false
+        type: string
+        default: ""
+    secrets:
+      token:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: macos-14
+    env:
+      FORMULA: ${{ inputs.formula }}
+      TAG: ${{ inputs.tag }}
+      REPOSITORY: ${{ inputs.repository || github.repository }}
+      TEMPLATE_PATH: ${{ inputs.template_path }}
+      RELEASE_URL: ${{ inputs.release_url }}
+      PR_BODY: ${{ inputs.pull_request_body }}
+      COMMIT_MESSAGE: ${{ inputs.commit_message }}
+      GH_TOKEN: ${{ secrets.token }}
+      FORMULA_SYNC_TOKEN: ${{ secrets.token }}
+    steps:
+      - name: Checkout publisher source
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.repository || github.repository }}
+          ref: ${{ inputs.tag }}
+          path: publisher
+          token: ${{ secrets.token }}
+
+      - name: Checkout tap
+        uses: actions/checkout@v4
+        with:
+          repository: Yarden-zamir/homebrew-tap
+          ref: main
+          path: tap
+          token: ${{ secrets.token }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Render formula
+        run: |
+          args=(
+            --manifest tap/formula-sync.json
+            render
+            --formula "$FORMULA"
+            --publisher-dir publisher
+            --tap-dir tap
+            --tag "$TAG"
+            --repository "$REPOSITORY"
+          )
+          if [ -n "$TEMPLATE_PATH" ]; then
+            args+=(--template-path "$TEMPLATE_PATH")
+          fi
+          if [ -n "$RELEASE_URL" ]; then
+            args+=(--url "$RELEASE_URL")
+          fi
+          uv run --no-project tap/scripts/sync_formula.py "${args[@]}"
+
+      - name: Regenerate README table
+        working-directory: tap
+        run: uv run --no-project scripts/update_readme_table.py
+
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@main
+
+      - name: Trust Git repositories
+        working-directory: tap
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE/tap"
+          git config --global --add safe.directory "$(brew --repository)"
+          brew tap yarden-zamir/tap "$GITHUB_WORKSPACE/tap"
+          brew trust --tap yarden-zamir/tap
+
+      - name: Install Homebrew Bundler RubyGems
+        run: brew install-bundler-gems
+
+      - name: Validate formula
+        working-directory: tap
+        run: |
+          args=(
+            --manifest formula-sync.json
+            render
+            --formula "$FORMULA"
+            --publisher-dir "$GITHUB_WORKSPACE/publisher"
+            --tap-dir .
+            --tag "$TAG"
+            --repository "$REPOSITORY"
+            --check
+          )
+          if [ -n "$TEMPLATE_PATH" ]; then
+            args+=(--template-path "$TEMPLATE_PATH")
+          fi
+          if [ -n "$RELEASE_URL" ]; then
+            args+=(--url "$RELEASE_URL")
+          fi
+          uv run --no-project scripts/sync_formula.py "${args[@]}"
+          brew style "Formula/${FORMULA}.rb"
+
+      - name: Open tap pull request
+        working-directory: tap
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "Formula ${FORMULA} is already synced"
+            exit 0
+          fi
+
+          branch="sync-${FORMULA}-${TAG}-${GITHUB_RUN_ID}"
+          if [ -n "$COMMIT_MESSAGE" ]; then
+            message="$COMMIT_MESSAGE"
+          else
+            message="${FORMULA} ${TAG}"
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$branch"
+          git add Formula README.md
+          git commit -m "$message"
+          git push --force-with-lease origin "$branch"
+          gh pr create --repo Yarden-zamir/homebrew-tap --head "$branch" --base main --title "$message" --body "$PR_BODY"
