@@ -12,6 +12,11 @@ jobs:
         id: set-up-homebrew
         uses: Homebrew/actions/setup-homebrew@main
 
+      - name: Trust Git repositories
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git config --global --add safe.directory "$(brew --repository)"
+
       - name: Cache Homebrew Bundler RubyGems
         id: cache
         uses: actions/cache@v4
