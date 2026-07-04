@@ -35,9 +35,9 @@
       "template_path": ".homebrew/zsh-act-completion.rb",
       "template_ref": "main"
     },
-    "chrome-bookmark-rest-controller": {
-      "repository": "Yarden-zamir/chrome-bookmark-rest-controller",
-      "template_path": ".homebrew/chrome-bookmark-rest-controller.rb",
+    "bookmarkctl": {
+      "repository": "Yarden-zamir/bookmarkctl",
+      "template_path": ".homebrew/bookmarkctl.rb",
       "template_ref": "main"
     }
   }

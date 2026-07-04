@@ -1,15 +1,15 @@
 # typed: false
 # frozen_string_literal: true
 
-class ChromeBookmarkRestController < Formula
+class Bookmarkctl < Formula
   include Language::Python::Virtualenv
 
   desc "Control Chrome bookmarks through a local FastAPI queue and CLI"
-  homepage "https://github.com/Yarden-zamir/chrome-bookmark-rest-controller"
-  url "https://github.com/Yarden-zamir/chrome-bookmark-rest-controller/archive/refs/tags/v0.1.0.tar.gz"
-  sha256 "0a7576d1d03d63feeddf666b43dceb10572fc4b486f851df9f9e9a59680a7283"
+  homepage "https://github.com/Yarden-zamir/bookmarkctl"
+  url "https://github.com/Yarden-zamir/bookmarkctl/archive/refs/tags/v0.2.0.tar.gz"
+  sha256 "508551acdf155ae582991918db67902dda5d3fca56bd6bc9abad498abaa3525c"
   license "MIT"
-  head "https://github.com/Yarden-zamir/chrome-bookmark-rest-controller.git", branch: "main"
+  head "https://github.com/Yarden-zamir/bookmarkctl.git", branch: "main"
 
   depends_on "rust" => :build
   depends_on "python@3.14"
