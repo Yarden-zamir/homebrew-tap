@@ -15,6 +15,11 @@
       "template_path": ".homebrew/issuegator.rb",
       "template_ref": "main"
     },
+    "kitshn": {
+      "repository": "Yarden-zamir/kitshn",
+      "template_path": ".homebrew/kitshn.rb",
+      "template_ref": "main"
+    },
     "navgator": {
       "repository": "Yarden-zamir/navgator",
       "template_path": ".homebrew/navgator.rb",
