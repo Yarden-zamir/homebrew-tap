@@ -10,7 +10,7 @@
 | [issuegator](https://github.com/Yarden-zamir/issuegator)                 | Rust TUI GitHub issue explorer for the current repository             | `brew install issuegator`         |
 | [kitshn](https://github.com/Yarden-zamir/kitshn)                         | Small VPS deployment system for GitHub repos                          | `brew install kitshn`             |
 | [navgator](https://github.com/Yarden-zamir/navgator)                     | Rust TUI project navigator with Git worktree and preview support      | `brew install navgator`           |
-| [sessiongator](https://github.com/Yarden-zamir/sessiongator)             | Rust TUI browser for Claude Code and opencode sessions                | `brew install sessiongator`       |
+| [sessiongator](https://github.com/Yarden-zamir/sessiongator)             | Rust TUI browser for AI coding sessions                               | `brew install sessiongator`       |
 | [wrap](https://github.com/Yarden-zamir/WRAP)                             | Generates 'wraps' for functions in any language using 'processors'    | `brew install wrap`               |
 | [zsh-act-completion](https://github.com/Yarden-zamir/zsh-act-completion) | Zsh completions for act (for github)                                  | `brew install zsh-act-completion` |
 <!-- project_table_end -->
