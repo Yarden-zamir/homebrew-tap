@@ -4,8 +4,8 @@
 class Navgator < Formula
   desc "Rust TUI project navigator with Git worktree and preview support"
   homepage "https://github.com/Yarden-zamir/navgator"
-  url "https://github.com/Yarden-zamir/navgator/archive/refs/tags/v0.4.0.tar.gz"
-  sha256 "11d6a112d242b24fb26aa77a1c4d5f1a94c5b04ad397e64c585435ffa6ce29a0"
+  url "https://github.com/Yarden-zamir/navgator/archive/refs/tags/v0.5.0.tar.gz"
+  sha256 "aec3d4cbdbbb578921ca4297715f8a769f5a3df9460bf0020170d2705d5c07ba"
   license "MIT"
   head "https://github.com/Yarden-zamir/navgator.git", branch: "main"
 
@@ -20,11 +20,12 @@ class Navgator < Formula
 
   def caveats
     <<~EOS
-      To activate the zsh navigator widget, add this to your .zshrc:
+      Run `navgator onboarding` for a guided setup, or add this to your .zshrc:
         source #{opt_pkgshare}/navgator.zsh
-
-      Then bind it, for example:
         bindkey '^T' navigate
+
+      navgator needs a Nerd Font to render its icons, for example:
+        brew install --cask font-jetbrains-mono-nerd-font
     EOS
   end
 
