@@ -4,8 +4,8 @@
 class Sessiongator < Formula
   desc "Rust TUI browser for AI coding sessions"
   homepage "https://github.com/Yarden-zamir/sessiongator"
-  url "https://github.com/Yarden-zamir/sessiongator/archive/refs/tags/v0.4.4.tar.gz"
-  sha256 "6b8f15ac30eb0772b5636ca1acb7b80e098da0682fd856e11473f03da06e09ff"
+  url "https://github.com/Yarden-zamir/sessiongator/archive/refs/tags/v0.5.1.tar.gz"
+  sha256 "94aaef65e5ce6c61ef830dfacc5c47d3b45e1006e91b5cb5fe41e76be900e05a"
   license "MIT"
   head "https://github.com/Yarden-zamir/sessiongator.git", branch: "main"
 
