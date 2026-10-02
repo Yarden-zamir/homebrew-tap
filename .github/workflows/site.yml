@@ -1,16 +1,12 @@
 # Builds the catalog page and deploys it to brew.yarden-zamir.com.
-# Formula bumps land on main through automerge with the built-in token, and pushes made
-# with that token do not start other workflows. So the site also rebuilds when the
-# automerge or sync formula workflows finish.
+# Formula bumps reach main through automerge, which merges with the TOKEN secret, so
+# those merges count as pushes and start this workflow.
 name: site
 
 on:
   push:
     branches: [main]
     paths: [Formula/**, site/**, .github/workflows/site.yml]
-  workflow_run:
-    workflows: [automerge, sync formula]
-    types: [completed]
   workflow_dispatch:
 
 concurrency:
@@ -22,12 +18,10 @@ permissions:
 
 jobs:
   deploy:
-    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: main
           # build.mjs reads "last updated" dates from git history.
           fetch-depth: 0
 
