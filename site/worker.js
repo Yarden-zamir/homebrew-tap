@@ -1,6 +1,10 @@
 // Catalog page for the Yarden-zamir Homebrew tap, served on brew.yarden-zamir.com.
 // It reads the tap from GitHub on request, so a new formula shows up without a build.
 // The formula list comes from the README table that update-readme.yml regenerates.
+// Dates come from GitHub's public Atom feeds, which need no token or API quota.
+//
+// Limit: each formula costs 3 subrequests (formula, commit feed, release feed) and the
+// free Workers plan allows 50, so the page fits about 15 formulae. Revisit at that size.
 
 const REPO = "Yarden-zamir/homebrew-tap";
 const TAP = "yarden-zamir/tap";
@@ -9,36 +13,38 @@ const CACHE_SECONDS = 60 * 60;
 
 export default {
   async fetch(request, env, ctx) {
-    if (new URL(request.url).pathname !== "/") return new Response("Not found", { status: 404 });
-    const cacheKey = new Request(new URL("/", request.url));
+    const { pathname } = new URL(request.url);
+    if (pathname !== "/" && pathname !== "/formulae.json") return new Response("Not found", { status: 404 });
+    const cacheKey = new Request(new URL(pathname, request.url));
     const cached = await caches.default.match(cacheKey);
     if (cached) return cached;
 
-    const response = new Response(renderPage(await loadFormulae()), {
-      headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": `public, max-age=${CACHE_SECONDS}` },
-    });
+    const formulae = await loadFormulae();
+    const response = pathname === "/formulae.json"
+      ? Response.json({ tap: TAP, updatedAt: new Date().toISOString(), formulae })
+      : new Response(renderPage(formulae), { headers: { "Content-Type": "text/html; charset=utf-8" } });
+    response.headers.set("Cache-Control", `public, max-age=${CACHE_SECONDS}`);
     ctx.waitUntil(caches.default.put(cacheKey, response.clone()));
     return response;
   },
 };
 
-async function raw(path) {
-  const response = await fetch(`${RAW}/${path}`);
-  if (!response.ok) throw new Error(`GitHub raw ${path} returned ${response.status}`);
+async function text(url) {
+  const response = await fetch(url, { headers: { "User-Agent": "brew.yarden-zamir.com" } });
+  if (!response.ok) throw new Error(`${url} returned ${response.status}`);
   return response.text();
 }
 
-// Formula names are the link texts in the first column of the README table.
+// Formula names are the install commands in the third column of the README table.
 async function formulaNames() {
-  const readme = await raw("README.md");
+  const readme = await text(`${RAW}/README.md`);
   const start = readme.indexOf("<!-- project_table_start -->");
   const end = readme.indexOf("<!-- project_table_end -->");
   if (start < 0 || end < 0) throw new Error("README has no project table markers");
   const names = [];
   for (const line of readme.slice(start, end).split("\n")) {
     if (!line.startsWith("| [")) continue;
-    const install = line.split("|")[3]?.trim() ?? "";
-    const name = install.replaceAll("`", "").replace("brew install", "").trim();
+    const name = (line.split("|")[3] ?? "").replaceAll("`", "").replace("brew install", "").trim();
     if (!name) throw new Error(`README row without an install name: ${line}`);
     names.push(name);
   }
@@ -46,7 +52,15 @@ async function formulaNames() {
   return names;
 }
 
-// Reads the few fields the page shows. Formulae here are simple and keep one field per line.
+// The newest <updated> value in an Atom feed, and the title of its first entry.
+function atom(feed) {
+  const updated = feed.split("<updated>").slice(1).map((part) => part.slice(0, part.indexOf("</updated>")));
+  const entry = feed.indexOf("<entry>");
+  const title = entry < 0 ? null : feed.slice(feed.indexOf("<title>", entry) + 7, feed.indexOf("</title>", entry));
+  return { updated: updated.sort().at(-1) ?? null, title };
+}
+
+// Reads the fields the page shows. The formulae here are simple and keep one field per line.
 function parseFormula(name, source) {
   const lines = source.split("\n").map((l) => l.trim());
   const quoted = (key) => {
@@ -54,66 +68,94 @@ function parseFormula(name, source) {
     return line ? line.slice(key.length + 2, line.indexOf('"', key.length + 2)) : undefined;
   };
   const url = quoted("url") ?? "";
-  const tag = url.split("/tags/")[1]?.replace(".tar.gz", "");
-  const deps = lines.filter((l) => l.startsWith('depends_on "')).map((l) => ({
-    name: l.split('"')[1],
-    build: l.includes(":build"),
-  }));
+  const deps = lines.filter((l) => l.startsWith('depends_on "')).map((l) => ({ name: l.split('"')[1], build: l.includes(":build") }));
 
   // Caveats are the steps to take after install. Swap Homebrew path helpers for shell.
   let caveats = "";
   if (lines.includes("def caveats")) {
     const body = source.split("def caveats")[1];
-    const heredoc = body.slice(body.indexOf("<<~EOS") + 6, body.indexOf("\n    EOS"));
-    caveats = heredoc.split("\n").map((l) => l.slice(6)).join("\n").trim()
+    caveats = body.slice(body.indexOf("<<~EOS") + 6, body.indexOf("\n    EOS")).split("\n").map((l) => l.slice(6)).join("\n").trim()
       .replaceAll("#{opt_pkgshare}", `$(brew --prefix ${name})/share/${name}`)
       .replaceAll("#{opt_prefix}", `$(brew --prefix ${name})`)
       .replaceAll("#{HOMEBREW_PREFIX}", "$(brew --prefix)");
   }
 
+  const depNames = deps.map((d) => d.name);
+  const tags = [
+    depNames.includes("rust") && "rust",
+    (depNames.includes("uv") || depNames.some((d) => d.startsWith("python"))) && "python",
+    (caveats.includes(".zshrc") || name.startsWith("zsh")) && "zsh",
+    depNames.includes("gh") && "gh",
+  ].filter(Boolean);
+
   return {
     name,
     desc: quoted("desc") ?? "",
     homepage: quoted("homepage") ?? `https://github.com/${REPO}`,
-    version: tag ?? quoted("version") ?? "",
+    version: url.split("/tags/")[1]?.replace(".tar.gz", "") ?? quoted("version") ?? "",
     license: quoted("license") ?? "",
     head: lines.some((l) => l.startsWith("head ")),
     deps,
+    tags,
     caveats,
   };
 }
 
 async function loadFormulae() {
   const names = await formulaNames();
-  const sources = await Promise.all(names.map((n) => raw(`Formula/${n}.rb`)));
-  return names.map((n, i) => parseFormula(n, sources[i]));
+  return Promise.all(names.map(async (name) => {
+    const formula = parseFormula(name, await text(`${RAW}/Formula/${name}.rb`));
+    const [commits, releases] = await Promise.all([
+      text(`https://github.com/${REPO}/commits/main/Formula/${name}.rb.atom`).then(atom),
+      text(`${formula.homepage}/releases.atom`).then(atom),
+    ]);
+    const release = releases.title?.startsWith("Release ") ? releases.title.slice(8) : releases.title;
+    return { ...formula, updatedAt: commits.updated, releasedAt: releases.updated, release };
+  }));
 }
 
-const escapeHtml = (s) => s.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
+const escapeHtml = (s) => String(s).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
 
-function copyLine(command, label = "copy") {
-  return `<div class="cmd"><code>${escapeHtml(command)}</code><button type="button" data-copy="${escapeHtml(command)}">${label}</button></div>`;
+function copyLine(command, { label = "copy", id = "" } = {}) {
+  return `<div class="cmd"><code${id ? ` id="${id}"` : ""}>${escapeHtml(command)}</code><button type="button"${id ? ` data-copy-from="${id}"` : ""} data-copy="${escapeHtml(command)}">${label}</button></div>`;
 }
 
-function renderItem(f, i) {
+const TAG_LABELS = { rust: "Rust", python: "Python", zsh: "zsh", gh: "needs gh" };
+
+function renderItem(f) {
   const runtime = f.deps.filter((d) => !d.build).map((d) => d.name);
   const build = f.deps.filter((d) => d.build).map((d) => d.name);
-  const needs = [
-    runtime.length ? `needs ${runtime.join(", ")}` : "",
-    build.length ? `builds with ${build.join(", ")}` : "",
+  const facts = [
+    runtime.length && `needs ${runtime.join(", ")}`,
+    build.length && `builds with ${build.join(", ")}`,
+    f.license,
+    f.head && "--HEAD ok",
   ].filter(Boolean).join(" · ");
-  return `<article class="item" data-search="${escapeHtml(`${f.name} ${f.desc}`.toLowerCase())}">
-  <div class="line"><span class="qty">${String(i + 1).padStart(2, "0")}</span><h2>${escapeHtml(f.name)}</h2><span class="leader"></span><span class="ver">${escapeHtml(f.version)}</span></div>
+  const full = `${TAP}/${f.name}`;
+  return `<article class="item" data-name="${escapeHtml(f.name)}" data-updated="${escapeHtml(f.updatedAt ?? "")}" data-released="${escapeHtml(f.releasedAt ?? "")}"
+    data-tags="${f.tags.join(" ")}" data-search="${escapeHtml(`${f.name} ${f.desc} ${f.tags.join(" ")}`.toLowerCase())}">
+  <div class="line"><h2><a href="${escapeHtml(f.homepage)}">${escapeHtml(f.name)}</a></h2><span class="leader"></span><span class="ver">${escapeHtml(f.version)}</span></div>
   <p class="desc">${escapeHtml(f.desc)}</p>
-  ${copyLine(`brew install ${TAP}/${f.name}`)}
-  ${f.caveats ? `<details><summary>after install</summary><pre>${escapeHtml(f.caveats)}</pre></details>` : ""}
-  <p class="meta">${[needs, f.license, f.head ? `<span title="brew install --HEAD ${TAP}/${escapeHtml(f.name)}">--HEAD ok</span>` : ""].filter(Boolean).join(" · ")}</p>
-  <p class="links"><a href="${escapeHtml(f.homepage)}">repo</a><a href="${escapeHtml(f.homepage)}/releases">releases</a><a href="https://github.com/${REPO}/blob/main/Formula/${escapeHtml(f.name)}.rb">formula</a></p>
+  <p class="when"><span data-time="${escapeHtml(f.updatedAt ?? "")}">updated</span>${f.release ? ` · latest <a href="${escapeHtml(f.homepage)}/releases/latest">${escapeHtml(f.release)}</a>` : ""}${f.tags.map((t) => ` <span class="tag">${TAG_LABELS[t]}</span>`).join("")}</p>
+  ${copyLine(`brew install ${full}`)}
+  ${f.caveats ? `<details open><summary>after install</summary><pre>${escapeHtml(f.caveats)}</pre></details>` : ""}
+  <details><summary>more commands</summary>${copyLine(`brew upgrade ${full}`)}${f.head ? copyLine(`brew install --HEAD ${full}`) : ""}${copyLine(`brew uninstall ${f.name}`)}</details>
+  <p class="meta">${escapeHtml(facts)}</p>
+  <p class="links"><a href="${escapeHtml(f.homepage)}">repo</a><a href="${escapeHtml(f.homepage)}/releases">releases</a><a href="${escapeHtml(f.homepage)}/issues">issues</a><a href="https://github.com/${REPO}/blob/main/Formula/${escapeHtml(f.name)}.rb">formula</a></p>
 </article>`;
 }
 
+// Torn paper: polygon points for a zigzag along the top and bottom edges.
+function zigzag() {
+  const teeth = 64;
+  const depth = 7;
+  const top = Array.from({ length: teeth + 1 }, (_, i) => `${(i * 100) / teeth}% ${i % 2 ? 0 : depth}px`);
+  const bottom = Array.from({ length: teeth + 1 }, (_, i) => `${100 - (i * 100) / teeth}% calc(100% - ${i % 2 ? 0 : depth}px)`);
+  return [...top, ...bottom].join(", ");
+}
+
 function renderPage(formulae) {
-  const all = `brew install ${formulae.map((f) => `${TAP}/${f.name}`).join(" ")}`;
+  const tags = [...new Set(formulae.flatMap((f) => f.tags))];
   const printed = new Date().toISOString().slice(0, 16).replace("T", " ");
   return `<!doctype html>
 <html lang="en">
@@ -122,48 +164,54 @@ function renderPage(formulae) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Yarden's Homebrew tap</title>
 <meta name="description" content="${formulae.length} command line tools by Yarden Zamir, installable with Homebrew.">
+<link rel="alternate" type="application/json" href="/formulae.json">
 <style>
-  :root { --paper: #fbf8f1; --edge: #e6dfd2; --ink: #2a2622; --faded: #8c857a; --stamp: #c8402b; --bg: #ebe6dc; }
-  @media (prefers-color-scheme: dark) { :root { --paper: #23221f; --edge: #3a3833; --ink: #ece4d6; --faded: #8f897e; --stamp: #f0694f; --bg: #141412; } }
+  :root { --paper: #fbf8f1; --edge: #e2dacb; --ink: #26221e; --faded: #7d766b; --stamp: #c23d28; --bg: #e9e3d8; }
+  @media (prefers-color-scheme: dark) { :root { --paper: #23221f; --edge: #3d3b35; --ink: #eee6d8; --faded: #a29b8f; --stamp: #f0694f; --bg: #141412; } }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.5 ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
-  .receipt { position: relative; max-width: 640px; margin: 32px auto; padding: 36px 32px 44px; background: var(--paper);
-    --tooth: 12px; -webkit-mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / var(--tooth) 100%,
-    conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) 50% / var(--tooth) 100%;
-    -webkit-mask-composite: source-in; mask-composite: intersect; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.55 ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+  a { color: inherit; }
+  .receipt { position: relative; max-width: 780px; margin: 40px auto; padding: 48px 48px 56px; background: var(--paper); clip-path: polygon(${zigzag()}); }
   header { text-align: center; }
-  h1 { margin: 0; font-size: 20px; letter-spacing: 3px; }
-  .faded, .sub, .meta, .desc, .qty, .ver, footer { color: var(--faded); }
-  .sub { margin: 4px 0 0; font-size: 12px; }
-  hr { border: 0; border-top: 1px dashed var(--faded); margin: 22px 0; }
-  .cmd { display: flex; align-items: center; gap: 8px; margin: 8px 0; padding: 7px 8px 7px 12px; border: 1px dashed var(--edge); border-radius: 6px; }
-  .cmd code { flex: 1; min-width: 0; overflow-x: auto; white-space: nowrap; font-size: 13px; }
+  h1 { margin: 0; font-size: 28px; letter-spacing: 4px; }
+  .sub { margin: 6px 0 0; color: var(--faded); font-size: 14px; }
+  .step { margin: 18px 0 6px; color: var(--faded); }
+  hr { border: 0; border-top: 2px dashed var(--edge); margin: 28px 0; }
+  .cmd { display: flex; align-items: center; gap: 10px; margin: 10px 0; padding: 9px 10px 9px 14px; border: 1px dashed var(--faded); border-radius: 8px; }
+  .cmd code { flex: 1; min-width: 0; overflow-x: auto; white-space: nowrap; font-size: 15px; }
   .cmd code::before { content: "$ "; color: var(--faded); }
-  button { font: inherit; font-size: 12px; color: var(--ink); background: none; border: 1px solid var(--ink); border-radius: 4px; padding: 2px 10px; cursor: pointer; }
+  button, select { font: inherit; font-size: 14px; color: var(--ink); background: var(--paper); border: 1.5px solid var(--ink); border-radius: 6px; padding: 4px 12px; cursor: pointer; }
   button.done { color: var(--stamp); border-color: var(--stamp); }
-  input { width: 100%; font: inherit; color: var(--ink); background: none; border: 0; border-bottom: 1px solid var(--faded); padding: 6px 0; outline: none; }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+  input { flex: 1 1 260px; min-width: 0; font: inherit; color: var(--ink); background: none; border: 0; border-bottom: 2px solid var(--faded); padding: 6px 0; outline: none; }
+  input:focus { border-color: var(--ink); }
   input::placeholder { color: var(--faded); }
-  .item { padding: 18px 0; border-bottom: 1px dashed var(--edge); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .chip { border-style: dashed; }
+  .chip[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-style: solid; }
+  .count { color: var(--faded); font-size: 14px; margin: 14px 0 0; }
+  .item { padding: 24px 0; border-bottom: 2px dashed var(--edge); }
   .item[hidden] { display: none; }
-  .line { display: flex; align-items: baseline; gap: 10px; }
-  .line h2 { margin: 0; font-size: 16px; overflow-wrap: anywhere; }
-  .receipt, .item { min-width: 0; }
-  .leader { flex: 1; border-bottom: 2px dotted var(--faded); transform: translateY(-4px); opacity: .6; }
-  .desc { margin: 4px 0 0 30px; }
-  .item .cmd, .item details, .meta, .links { margin-left: 30px; }
-  .meta { margin-top: 6px; margin-bottom: 0; font-size: 12px; }
-  .links { margin: 6px 0 0 30px; font-size: 12px; }
-  .links a { color: var(--ink); margin-right: 14px; }
-  details { margin-top: 6px; font-size: 13px; }
+  .line { display: flex; align-items: baseline; gap: 12px; }
+  .line h2 { margin: 0; font-size: 21px; overflow-wrap: anywhere; }
+  .line h2 a { text-decoration: none; }
+  .line h2 a:hover { text-decoration: underline; }
+  .leader { flex: 1; border-bottom: 2px dotted var(--faded); transform: translateY(-5px); opacity: .7; }
+  .ver { color: var(--faded); font-size: 15px; }
+  .desc { margin: 6px 0 0; font-size: 16.5px; }
+  .when { margin: 4px 0 0; color: var(--faded); font-size: 14px; }
+  .tag { display: inline-block; margin-left: 6px; padding: 0 8px; border: 1px solid var(--faded); border-radius: 99px; font-size: 12.5px; }
+  .meta, .links { margin: 8px 0 0; font-size: 14px; color: var(--faded); }
+  .links a { margin-right: 18px; color: var(--ink); }
+  details { margin-top: 10px; font-size: 15px; }
   summary { cursor: pointer; color: var(--stamp); }
-  pre { margin: 6px 0 0; padding: 10px 12px; background: color-mix(in srgb, var(--edge) 45%, transparent); border-radius: 6px; white-space: pre-wrap; }
-  .stamp { position: absolute; top: 30px; right: 26px; width: 92px; height: 92px; border: 3px double var(--stamp); border-radius: 50%;
+  pre { margin: 8px 0 0; padding: 12px 14px; background: color-mix(in srgb, var(--edge) 50%, transparent); border-radius: 8px; white-space: pre-wrap; font-size: 14.5px; }
+  .stamp { position: absolute; top: 36px; right: 36px; width: 110px; height: 110px; border: 4px double var(--stamp); border-radius: 50%;
     color: var(--stamp); display: grid; place-content: center; text-align: center; transform: rotate(-12deg); opacity: .85; font-weight: 800; line-height: 1.1; }
-  .stamp b { font-size: 26px; display: block; }
-  .stamp small { font-size: 9px; letter-spacing: 1.5px; }
-  footer { text-align: center; font-size: 11px; letter-spacing: 1.5px; margin-top: 26px; }
-  footer a { color: inherit; }
-  @media (max-width: 560px) { .receipt { margin: 0; padding: 32px 16px 40px; } .stamp { display: none; } .desc, .item .cmd, .item details, .meta, .links { margin-left: 0; } }
+  .stamp b { font-size: 32px; display: block; }
+  .stamp small { font-size: 10.5px; letter-spacing: 2px; }
+  footer { text-align: center; color: var(--faded); font-size: 13px; letter-spacing: 1.5px; margin-top: 30px; }
+  @media (max-width: 640px) { body { font-size: 15px; } .receipt { margin: 0; padding: 40px 18px 48px; } .stamp { display: none; } }
 </style>
 </head>
 <body>
@@ -171,24 +219,95 @@ function renderPage(formulae) {
   <div class="stamp" aria-hidden="true"><small>IN STOCK</small><b>${formulae.length}</b><small>FORMULAE</small></div>
   <header>
     <h1>YARDEN'S TAP</h1>
-    <p class="sub">github.com/${REPO}</p>
+    <p class="sub"><a href="https://github.com/${REPO}">github.com/${REPO}</a></p>
     <p class="sub">PRINTED ${printed} UTC</p>
   </header>
   <hr>
-  <p class="faded">1. add the tap once</p>
+  <p class="step">1. add the tap once</p>
   ${copyLine(`brew tap ${TAP}`)}
-  <p class="faded">2. or take the whole order</p>
-  ${copyLine(all, "copy all")}
+  <p class="step">2. take everything shown below</p>
+  ${copyLine("", { label: "copy all", id: "all" })}
   <hr>
-  <input type="search" placeholder="filter: rust, sessions, zsh…" aria-label="Filter formulae" autocomplete="off">
+  <div class="controls">
+    <input type="search" placeholder="filter (press /)" aria-label="Filter formulae" autocomplete="off">
+    <label>sort <select aria-label="Sort formulae">
+      <option value="updated">recently updated</option>
+      <option value="released">newest release</option>
+      <option value="name">name A–Z</option>
+      <option value="oldest">least recently updated</option>
+    </select></label>
+  </div>
+  <div class="chips">${tags.map((t) => `<button type="button" class="chip" data-tag="${t}" aria-pressed="false">${TAG_LABELS[t]}</button>`).join("")}</div>
+  <p class="count"></p>
+  <section id="items">
   ${formulae.map(renderItem).join("\n  ")}
+  </section>
   <footer>
     <p>ITEMS: ${formulae.length} · PRICE: $0.00 · LICENSE: MIT</p>
-    <p>UPDATED FROM <a href="https://github.com/${REPO}">${REPO}</a> EVERY HOUR</p>
+    <p>REFRESHED FROM GITHUB EVERY HOUR · <a href="/formulae.json">FORMULAE.JSON</a></p>
     <p>NO REFUNDS ON ABANDONED PROJECTS</p>
   </footer>
 </main>
 <script>
+  const TAP = ${JSON.stringify(TAP)};
+  const items = [...document.querySelectorAll(".item")];
+  const list = document.getElementById("items");
+  const filter = document.querySelector("input[type=search]");
+  const sort = document.querySelector("select");
+  const chips = [...document.querySelectorAll(".chip")];
+  const all = document.getElementById("all");
+  const allButton = document.querySelector('[data-copy-from="all"]');
+  const count = document.querySelector(".count");
+
+  const relative = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
+  for (const el of document.querySelectorAll("[data-time]")) {
+    if (!el.dataset.time) continue;
+    const days = Math.round((Date.parse(el.dataset.time) - Date.now()) / 864e5);
+    el.textContent = "updated " + (days === 0 ? "today" : Math.abs(days) < 60 ? relative.format(days, "day") : relative.format(Math.round(days / 30), "month"));
+    el.title = el.dataset.time;
+  }
+
+  const comparators = {
+    updated: (a, b) => b.dataset.updated.localeCompare(a.dataset.updated),
+    released: (a, b) => b.dataset.released.localeCompare(a.dataset.released),
+    name: (a, b) => a.dataset.name.localeCompare(b.dataset.name),
+    oldest: (a, b) => a.dataset.updated.localeCompare(b.dataset.updated),
+  };
+
+  // Filter, sort and tags live in the URL, so a filtered view can be shared.
+  function apply() {
+    const q = filter.value.trim().toLowerCase();
+    const active = chips.filter((c) => c.getAttribute("aria-pressed") === "true").map((c) => c.dataset.tag);
+    const shown = [];
+    for (const item of [...items].sort(comparators[sort.value])) {
+      const tags = item.dataset.tags.split(" ");
+      item.hidden = !(item.dataset.search.includes(q) && active.every((t) => tags.includes(t)));
+      list.append(item);
+      if (!item.hidden) shown.push(item.dataset.name);
+    }
+    const command = shown.length ? "brew install " + shown.map((n) => TAP + "/" + n).join(" ") : "# nothing matches the filter";
+    all.textContent = command;
+    allButton.dataset.copy = command;
+    count.textContent = shown.length + " of " + items.length + " shown";
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    if (sort.value !== "updated") params.set("sort", sort.value);
+    if (active.length) params.set("tags", active.join(","));
+    history.replaceState(null, "", params.size ? "?" + params : location.pathname);
+  }
+
+  const start = new URLSearchParams(location.search);
+  filter.value = start.get("q") ?? "";
+  if (comparators[start.get("sort")]) sort.value = start.get("sort");
+  const startTags = (start.get("tags") ?? "").split(",");
+  for (const chip of chips) chip.setAttribute("aria-pressed", String(startTags.includes(chip.dataset.tag)));
+
+  filter.addEventListener("input", apply);
+  sort.addEventListener("change", apply);
+  for (const chip of chips) chip.addEventListener("click", () => { chip.setAttribute("aria-pressed", String(chip.getAttribute("aria-pressed") !== "true")); apply(); });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "/" && document.activeElement !== filter) { event.preventDefault(); filter.focus(); }
+  });
   document.addEventListener("click", async (event) => {
     const button = event.target.closest("button[data-copy]");
     if (!button) return;
@@ -198,11 +317,7 @@ function renderPage(formulae) {
     button.classList.add("done");
     setTimeout(() => { button.textContent = label; button.classList.remove("done"); }, 1400);
   });
-  const filter = document.querySelector("input[type=search]");
-  filter.addEventListener("input", () => {
-    const q = filter.value.trim().toLowerCase();
-    for (const item of document.querySelectorAll(".item")) item.hidden = q !== "" && !item.dataset.search.includes(q);
-  });
+  apply();
 </script>
 </body>
 </html>
