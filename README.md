@@ -1,6 +1,8 @@
 # Yarden-zamir's tap
 `brew tap yarden-zamir/tap`
 
+Browse, filter and copy install commands at **[brew.yarden-zamir.com](https://brew.yarden-zamir.com)**.
+
 <!-- project_table_start -->
 | Project                                                                  | Description                                                           | Install                           |
 | ------------------------------------------------------------------------ | --------------------------------------------------------------------- | --------------------------------- |

@@ -1,0 +1,7 @@
+{
+  "name": "homebrew-tap-site",
+  "main": "worker.js",
+  "compatibility_date": "2026-09-01",
+  "preview_urls": false,
+  "routes": [{ "pattern": "brew.yarden-zamir.com", "custom_domain": true }]
+}
