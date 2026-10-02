@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Yarden's Homebrew tap</title>
+<meta name="description" content="Command line tools by Yarden Zamir, installable with Homebrew.">
+<link rel="alternate" type="application/json" href="/formulae.json">
+<style>
+  :root { --paper: #fbf8f1; --card: #fffdf8; --edge: #e2dacb; --ink: #26221e; --faded: #766f64; --stamp: #c23d28; --bg: #e9e3d8; }
+  @media (prefers-color-scheme: dark) { :root { --paper: #23221f; --card: #2a2925; --edge: #3d3b35; --ink: #eee6d8; --faded: #a29b8f; --stamp: #f0694f; --bg: #141412; } }
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: 24px; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.55 ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+  a { color: inherit; }
+  button, select { font: inherit; font-size: 14px; color: var(--ink); background: var(--card); border: 1.5px solid var(--ink); border-radius: 6px; padding: 5px 12px; cursor: pointer; }
+  button:hover, select:hover { background: color-mix(in srgb, var(--edge) 55%, var(--card)); }
+  button.done { color: var(--stamp); border-color: var(--stamp); }
+  button.primary { background: var(--ink); color: var(--paper); }
+  :focus-visible { outline: 2px solid var(--stamp); outline-offset: 2px; }
+
+  .page { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 32px; max-width: 1360px; margin: 0 auto; padding: 32px; align-items: start; }
+  .menu { min-width: 0; }
+  .order { position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto; }
+
+  .masthead { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-bottom: 20px; }
+  .masthead h1 { margin: 0; font-size: 34px; letter-spacing: 3px; line-height: 1.1; }
+  .masthead p { margin: 6px 0 0; color: var(--faded); }
+  .controls { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: center; padding: 14px 16px; background: var(--paper); border: 1px solid var(--edge); border-radius: 10px; }
+  .controls input { flex: 1 1 240px; min-width: 0; font: inherit; color: var(--ink); background: none; border: 0; border-bottom: 2px solid var(--faded); padding: 4px 0; outline: none; }
+  .controls input:focus { border-color: var(--ink); }
+  .controls input::placeholder { color: var(--faded); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { border-style: dashed; }
+  .chip[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-style: solid; }
+  .status { display: flex; justify-content: space-between; gap: 12px; color: var(--faded); font-size: 14px; margin: 14px 2px; }
+  .status button { font-size: 13px; padding: 2px 10px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+  .card { display: flex; flex-direction: column; gap: 8px; padding: 18px 18px 16px; background: var(--card); border: 1px solid var(--edge); border-radius: 10px; }
+  .card.in-order { border-color: var(--ink); box-shadow: inset 4px 0 0 var(--stamp); }
+  .card header { display: flex; align-items: baseline; gap: 10px; }
+  .card h2 { margin: 0; font-size: 20px; overflow-wrap: anywhere; }
+  .card h2 a { text-decoration: none; }
+  .card h2 a:hover { text-decoration: underline; }
+  .leader { flex: 1; border-bottom: 2px dotted var(--faded); transform: translateY(-5px); opacity: .6; }
+  .ver { color: var(--faded); font-size: 14px; }
+  .desc { margin: 0; font-size: 15.5px; }
+  .when { margin: 0; color: var(--faded); font-size: 13.5px; }
+  .tag { display: inline-block; margin: 0 4px 0 0; padding: 0 8px; border: 1px solid var(--faded); border-radius: 99px; font-size: 12.5px; color: var(--faded); }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 6px; }
+  .actions .add { flex: 1; }
+  .card details { font-size: 14px; }
+  .card summary { cursor: pointer; color: var(--faded); }
+  .links { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13.5px; color: var(--faded); }
+
+  .cmd { display: flex; align-items: center; gap: 8px; margin: 6px 0; padding: 7px 8px 7px 12px; border: 1px dashed var(--faded); border-radius: 8px; background: var(--card); }
+  .cmd code { flex: 1; min-width: 0; overflow-x: auto; white-space: nowrap; font-size: 14px; }
+  .cmd code::before { content: "$ "; color: var(--faded); }
+  .cmd button { font-size: 12.5px; padding: 2px 10px; }
+  pre { margin: 6px 0 0; padding: 10px 12px; background: color-mix(in srgb, var(--edge) 50%, transparent); border-radius: 8px; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13.5px; }
+
+  .receipt { position: relative; padding: 34px 26px 40px; background: var(--paper); clip-path: polygon(var(--zigzag)); }
+  .receipt h2 { margin: 0; text-align: center; font-size: 19px; letter-spacing: 3px; }
+  .receipt .sub { margin: 4px 0 0; text-align: center; color: var(--faded); font-size: 12.5px; }
+  .receipt hr { border: 0; border-top: 2px dashed var(--edge); margin: 18px 0; }
+  .step { margin: 14px 0 2px; color: var(--faded); font-size: 13.5px; }
+  .step b { color: var(--ink); }
+  .lines { list-style: none; margin: 8px 0 0; padding: 0; }
+  .lines li { display: flex; align-items: baseline; gap: 8px; padding: 3px 0; font-size: 14.5px; }
+  .lines li .leader { transform: translateY(-4px); }
+  .lines li button { border: 0; background: none; padding: 0 4px; color: var(--faded); font-size: 15px; }
+  .lines li button:hover { color: var(--stamp); }
+  .empty { color: var(--faded); font-size: 14px; margin: 8px 0 0; }
+  .total { display: flex; justify-content: space-between; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--faded); font-weight: 700; }
+  .buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
+  .receipt footer { margin-top: 20px; text-align: center; color: var(--faded); font-size: 11.5px; letter-spacing: 1.2px; }
+  .stamp { position: absolute; top: 18px; right: 14px; width: 74px; height: 74px; border: 3px double var(--stamp); border-radius: 50%; color: var(--stamp);
+    display: grid; place-content: center; text-align: center; transform: rotate(-12deg); opacity: .85; font-weight: 800; line-height: 1.05; font-size: 9px; letter-spacing: 1px; }
+  .stamp b { font-size: 22px; letter-spacing: 0; }
+
+  @media (max-width: 980px) {
+    .page { grid-template-columns: minmax(0, 1fr); padding: 16px; gap: 20px; }
+    .order { position: static; max-height: none; order: -1; }
+    .grid { grid-template-columns: minmax(0, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <main class="menu">
+    <div class="masthead">
+      <div>
+        <h1>THE MENU</h1>
+        <p>Command line tools from <a href="https://github.com/Yarden-zamir">Yarden Zamir</a>. Pick what you want, your order prints on the right.</p>
+      </div>
+    </div>
+    <div class="controls">
+      <input type="search" placeholder="filter (press /)" aria-label="Filter formulae" autocomplete="off">
+      <label>sort <select aria-label="Sort formulae">
+        <option value="updated">recently updated</option>
+        <option value="released">newest release</option>
+        <option value="name">name A–Z</option>
+        <option value="oldest">least recently updated</option>
+      </select></label>
+      <div class="chips"></div>
+    </div>
+    <div class="status"><span class="count"></span><button type="button" class="add-shown">+ add all shown</button></div>
+    <section class="grid" aria-label="Formulae"></section>
+  </main>
+
+  <aside class="order" aria-label="Your order">
+    <div class="receipt">
+      <div class="stamp" aria-hidden="true"><span>ON TAP</span><b class="stock"></b><span>TOOLS</span></div>
+      <h2>YOUR ORDER</h2>
+      <p class="sub"><a href="https://github.com/Yarden-zamir/homebrew-tap">yarden-zamir/homebrew-tap</a></p>
+      <p class="sub printed"></p>
+      <hr>
+      <p class="step"><b>1.</b> add the tap</p>
+      <div class="cmd" data-cmd="tap"></div>
+      <p class="step"><b>2.</b> trust it, so Homebrew loads its formulae</p>
+      <div class="cmd" data-cmd="trust"></div>
+      <p class="step"><b>3.</b> install your order</p>
+      <ul class="lines"></ul>
+      <p class="empty">Nothing yet. Press "+ add" on a tool, or "+ add all shown".</p>
+      <div class="cmd" data-cmd="install" hidden></div>
+      <div class="after" hidden>
+        <p class="step"><b>4.</b> after install</p>
+        <pre></pre>
+      </div>
+      <div class="total"><span>ITEMS</span><span class="items">0</span></div>
+      <div class="buttons">
+        <button type="button" class="primary copy-steps">copy all steps</button>
+        <button type="button" class="copy-brewfile">copy Brewfile</button>
+        <button type="button" class="share">copy order link</button>
+        <button type="button" class="clear">clear order</button>
+      </div>
+      <footer>
+        <p>PRICE: $0.00 · LICENSE: MIT</p>
+        <p class="built"></p>
+        <p><a href="/formulae.json">FORMULAE.JSON</a> · NO REFUNDS ON ABANDONED PROJECTS</p>
+      </footer>
+    </div>
+  </aside>
+</div>
+<script>
+  const DATA = /*DATA*/null;
+  const { tap: TAP, formulae } = DATA;
+  const byName = new Map(formulae.map((f) => [f.name, f]));
+  const TAG_LABELS = { rust: "Rust", python: "Python", zsh: "zsh", gh: "needs gh" };
+  const $ = (selector) => document.querySelector(selector);
+  const esc = (s) => String(s).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
+
+  // Torn paper edges on the receipt.
+  const teeth = 40;
+  const edge = (y, flip) => Array.from({ length: teeth + 1 }, (_, i) => `${flip ? 100 - (i * 100) / teeth : (i * 100) / teeth}% ${y(i % 2)}`);
+  document.documentElement.style.setProperty("--zigzag", [...edge((up) => (up ? "0" : "7px")), ...edge((up) => `calc(100% - ${up ? 0 : 7}px)`, true)].join(","));
+
+  const relative = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
+  const ago = (iso) => {
+    if (!iso) return "";
+    const days = Math.round((Date.parse(iso) - Date.now()) / 864e5);
+    return days === 0 ? "today" : Math.abs(days) < 60 ? relative.format(days, "day") : relative.format(Math.round(days / 30), "month");
+  };
+  const cmd = (command) => `<code>${esc(command)}</code><button type="button" data-copy="${esc(command)}">copy</button>`;
+
+  // ---- state, mirrored in the URL so a view or an order can be shared ----
+  const params = new URLSearchParams(location.search);
+  const state = {
+    q: params.get("q") ?? "",
+    sort: ["updated", "released", "name", "oldest"].includes(params.get("sort")) ? params.get("sort") : "updated",
+    tags: new Set((params.get("tags") ?? "").split(",").filter((t) => TAG_LABELS[t])),
+    order: new Set((params.get("order") ?? "").split(",").filter((n) => byName.has(n))),
+  };
+  function saveUrl() {
+    const p = new URLSearchParams();
+    if (state.q) p.set("q", state.q);
+    if (state.sort !== "updated") p.set("sort", state.sort);
+    if (state.tags.size) p.set("tags", [...state.tags].join(","));
+    if (state.order.size) p.set("order", [...state.order].join(","));
+    history.replaceState(null, "", p.size ? `?${p}` : location.pathname);
+  }
+
+  // ---- static parts ----
+  $(".stock").textContent = formulae.length;
+  $(".printed").textContent = `PRINTED ${new Date().toISOString().slice(0, 16).replace("T", " ")} UTC`;
+  $(".built").textContent = `MENU UPDATED ${DATA.builtAt.slice(0, 10)}`;
+  $('[data-cmd="tap"]').innerHTML = cmd(`brew tap ${TAP}`);
+  $('[data-cmd="trust"]').innerHTML = cmd(`brew trust --tap ${TAP}`);
+  const tagsInUse = [...new Set(formulae.flatMap((f) => f.tags))];
+  $(".chips").innerHTML = tagsInUse.map((t) => `<button type="button" class="chip" data-tag="${t}" aria-pressed="${state.tags.has(t)}">${TAG_LABELS[t]}</button>`).join("");
+  $("input[type=search]").value = state.q;
+  $("select").value = state.sort;
+
+  function card(f) {
+    const runtime = f.deps.filter((d) => !d.build).map((d) => d.name);
+    const build = f.deps.filter((d) => d.build).map((d) => d.name);
+    const facts = [runtime.length && `needs ${runtime.join(", ")}`, build.length && `builds with ${build.join(", ")}`, f.license, f.head && "--HEAD ok"].filter(Boolean).join(" · ");
+    const full = `${TAP}/${f.name}`;
+    return `<article class="card" data-name="${esc(f.name)}">
+      <header><h2><a href="${esc(f.homepage)}">${esc(f.name)}</a></h2><span class="leader"></span><span class="ver">${esc(f.version)}</span></header>
+      <p class="desc">${esc(f.desc)}</p>
+      <p class="when" title="${esc(f.updatedAt ?? "")}">updated ${ago(f.updatedAt)}${f.release ? ` · <a href="${esc(f.homepage)}/releases/latest">${esc(f.release)}</a>` : ""}</p>
+      <p class="when">${f.tags.map((t) => `<span class="tag">${TAG_LABELS[t]}</span>`).join("")}${esc(facts)}</p>
+      <details><summary>commands${f.caveats ? " and setup" : ""}</summary>
+        <div class="cmd">${cmd(`brew install ${full}`)}</div>
+        <div class="cmd">${cmd(`brew upgrade ${full}`)}</div>
+        ${f.head ? `<div class="cmd">${cmd(`brew install --HEAD ${full}`)}</div>` : ""}
+        <div class="cmd">${cmd(`brew uninstall ${f.name}`)}</div>
+        ${f.caveats ? `<pre>${esc(f.caveats)}</pre>` : ""}
+      </details>
+      <div class="actions"><button type="button" class="add" data-toggle="${esc(f.name)}"></button><button type="button" data-copy="brew install ${esc(full)}">copy install</button></div>
+      <p class="links"><a href="${esc(f.homepage)}">repo</a><a href="${esc(f.homepage)}/releases">releases</a><a href="${esc(f.homepage)}/issues">issues</a><a href="https://github.com/${DATA.repo}/blob/main/Formula/${esc(f.name)}.rb">formula</a></p>
+    </article>`;
+  }
+  $(".grid").innerHTML = formulae.map(card).join("");
+  const cards = [...document.querySelectorAll(".card")];
+
+  const comparators = {
+    updated: (a, b) => (b.updatedAt ?? "").localeCompare(a.updatedAt ?? ""),
+    released: (a, b) => (b.releasedAt ?? "").localeCompare(a.releasedAt ?? ""),
+    name: (a, b) => a.name.localeCompare(b.name),
+    oldest: (a, b) => (a.updatedAt ?? "").localeCompare(b.updatedAt ?? ""),
+  };
+  const matches = (f) => {
+    const q = state.q.trim().toLowerCase();
+    return `${f.name} ${f.desc} ${f.tags.join(" ")}`.toLowerCase().includes(q) && [...state.tags].every((t) => f.tags.includes(t));
+  };
+
+  function render() {
+    // Menu: sort, filter, and mark what is in the order.
+    const sorted = [...formulae].sort(comparators[state.sort]);
+    const shown = sorted.filter(matches);
+    const grid = $(".grid");
+    for (const f of sorted) {
+      const el = cards.find((c) => c.dataset.name === f.name);
+      el.hidden = !shown.includes(f);
+      el.classList.toggle("in-order", state.order.has(f.name));
+      el.querySelector(".add").textContent = state.order.has(f.name) ? "✓ in your order" : "+ add to order";
+      grid.append(el);
+    }
+    for (const chip of document.querySelectorAll(".chip")) chip.setAttribute("aria-pressed", String(state.tags.has(chip.dataset.tag)));
+    $(".count").textContent = `${shown.length} of ${formulae.length} shown`;
+
+    // Order: line items, install command, combined setup steps.
+    const ordered = sorted.filter((f) => state.order.has(f.name));
+    $(".lines").innerHTML = ordered.map((f) => `<li><span>${esc(f.name)}</span><span class="leader"></span><span class="ver">${esc(f.version)}</span><button type="button" data-toggle="${esc(f.name)}" aria-label="Remove ${esc(f.name)}">×</button></li>`).join("");
+    $(".empty").hidden = ordered.length > 0;
+    const install = $('[data-cmd="install"]');
+    install.hidden = !ordered.length;
+    install.innerHTML = ordered.length ? cmd(`brew install ${ordered.map((f) => `${TAP}/${f.name}`).join(" ")}`) : "";
+    const setup = ordered.filter((f) => f.caveats).map((f) => `# ${f.name}\n${f.caveats}`).join("\n\n");
+    $(".after").hidden = !setup;
+    $(".after pre").textContent = setup;
+    $(".items").textContent = ordered.length;
+    saveUrl();
+  }
+
+  function steps() {
+    const ordered = [...formulae].filter((f) => state.order.has(f.name));
+    const lines = [`brew tap ${TAP}`, `brew trust --tap ${TAP}`];
+    if (ordered.length) lines.push(`brew install ${ordered.map((f) => `${TAP}/${f.name}`).join(" ")}`);
+    return lines.join("\n");
+  }
+  function brewfile() {
+    const ordered = [...formulae].filter((f) => state.order.has(f.name));
+    return [`tap "${TAP}"`, ...ordered.map((f) => `brew "${TAP}/${f.name}"`)].join("\n") + "\n";
+  }
+
+  async function copy(button, text) {
+    await navigator.clipboard.writeText(text);
+    const label = button.textContent;
+    button.textContent = "copied";
+    button.classList.add("done");
+    setTimeout(() => { button.textContent = label; button.classList.remove("done"); }, 1400);
+  }
+
+  document.addEventListener("click", (event) => {
+    const t = event.target.closest("button");
+    if (!t) return;
+    if (t.dataset.copy) return copy(t, t.dataset.copy);
+    if (t.dataset.toggle) { state.order.has(t.dataset.toggle) ? state.order.delete(t.dataset.toggle) : state.order.add(t.dataset.toggle); return render(); }
+    if (t.dataset.tag) { state.tags.has(t.dataset.tag) ? state.tags.delete(t.dataset.tag) : state.tags.add(t.dataset.tag); return render(); }
+    if (t.classList.contains("add-shown")) { for (const f of formulae.filter(matches)) state.order.add(f.name); return render(); }
+    if (t.classList.contains("clear")) { state.order.clear(); return render(); }
+    if (t.classList.contains("copy-steps")) return copy(t, steps());
+    if (t.classList.contains("copy-brewfile")) return copy(t, brewfile());
+    if (t.classList.contains("share")) return copy(t, location.href);
+  });
+  $("input[type=search]").addEventListener("input", (e) => { state.q = e.target.value; render(); });
+  $("select").addEventListener("change", (e) => { state.sort = e.target.value; render(); });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "/" && document.activeElement?.tagName !== "INPUT") { e.preventDefault(); $("input[type=search]").focus(); }
+    if (e.key === "Escape" && document.activeElement?.tagName === "INPUT") { e.target.value = ""; state.q = ""; render(); }
+  });
+  render();
+</script>
+</body>
+</html>

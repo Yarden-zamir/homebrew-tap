@@ -50,4 +50,6 @@ jobs:
         if: contains(steps.pr.outputs.result, '/auto-merge') || contains(github.event.pull_request.labels.*.name, 'auto-merge')
         run: gh pr merge --merge --auto ${{ github.event.pull_request.number }} --body "Merged by auto-merge action."
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # A merge made with GITHUB_TOKEN starts no workflows. TOKEN lets the merge push
+          # start the workflows on main, such as site.yml.
+          GH_TOKEN: ${{ secrets.TOKEN || secrets.GITHUB_TOKEN }}

@@ -1,0 +1,39 @@
+# Builds the catalog page and deploys it to brew.yarden-zamir.com.
+# Formula bumps reach main through automerge, which merges with the TOKEN secret, so
+# those merges count as pushes and start this workflow.
+name: site
+
+on:
+  push:
+    branches: [main]
+    paths: [Formula/**, site/**, .github/workflows/site.yml]
+  workflow_dispatch:
+
+concurrency:
+  group: site
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # build.mjs reads "last updated" dates from git history.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Build
+        run: node site/build.mjs
+
+      - name: Deploy
+        run: npx --yes wrangler@4.147.0 deploy --config site/wrangler.jsonc
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
