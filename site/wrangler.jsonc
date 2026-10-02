@@ -1,7 +1,8 @@
 {
+  // Static assets only: CI builds site/dist with site/build.mjs, then deploys it.
   "name": "homebrew-tap-site",
-  "main": "worker.js",
   "compatibility_date": "2026-09-01",
+  "assets": { "directory": "./dist" },
   "preview_urls": false,
   "routes": [{ "pattern": "brew.yarden-zamir.com", "custom_domain": true }]
 }
