@@ -4,8 +4,8 @@
 class Navgator < Formula
   desc "Rust TUI project navigator with Git worktree and preview support"
   homepage "https://github.com/Yarden-zamir/navgator"
-  url "https://github.com/Yarden-zamir/navgator/archive/refs/tags/v0.10.0.tar.gz"
-  sha256 "0d987d7eadb019b67d65035866d10b7b05d5350a304905cedb4f15219ef2b49f"
+  url "https://github.com/Yarden-zamir/navgator/archive/refs/tags/v0.10.1.tar.gz"
+  sha256 "5958e287684a67d882f3b84dd72157b1a715d41e70226e030e40e9316cedb066"
   license "MIT"
   head "https://github.com/Yarden-zamir/navgator.git", branch: "main"
 
