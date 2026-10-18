@@ -4,8 +4,8 @@
 class Kitshn < Formula
   desc "Small VPS deployment system for GitHub repos"
   homepage "https://github.com/Yarden-zamir/kitshn"
-  url "https://github.com/Yarden-zamir/kitshn/archive/refs/tags/v0.8.0.tar.gz"
-  sha256 "f2f763c10256951ba55df3f7b7bb9b3cc9b85a3f502f7fce72c1c23100f6e279"
+  url "https://github.com/Yarden-zamir/kitshn/archive/refs/tags/v0.9.0.tar.gz"
+  sha256 "d7393eb8ce5b849008083bc6a157409f98591840ce868399ae60e7039fccfd63"
   license "MIT"
   head "https://github.com/Yarden-zamir/kitshn.git", branch: "main"
 
@@ -15,7 +15,7 @@ class Kitshn < Formula
     libexec.install "pyproject.toml", "README.md", "src"
     (bin/"kitshn").write <<~SH
       #!/bin/bash
-      export KITSHN_SOURCE_REF="v0.8.0"
+      export KITSHN_SOURCE_REF="v0.9.0"
       export KITSHN_SKILL_DIR="#{opt_libexec}/src/kitshn/resources/kitshn-deploy-service"
       exec "#{formula_opt_bin("uv")}/uv" run --no-project --python 3.14 \
         --with 'kitshn @ file://#{libexec}' \
