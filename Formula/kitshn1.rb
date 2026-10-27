@@ -1,13 +1,13 @@
 # typed: false
 # frozen_string_literal: true
 
-class Kitshn < Formula
+class Kitshn1 < Formula
   desc "Small VPS deployment system for GitHub repos"
-  homepage "https://github.com/Yarden-zamir/kitshn"
-  url "https://github.com/Yarden-zamir/kitshn/archive/refs/tags/v0.10.0.tar.gz"
-  sha256 "c34ffb9fa18d319aa1eb91e1af4ed95293dc40e7fd2f33a5c729d8bf94a2271f"
+  homepage "https://github.com/Yarden-zamir/kitshn-1"
+  url "https://github.com/Yarden-zamir/kitshn-1/archive/refs/tags/v0.10.0.tar.gz"
+  sha256 "955f2a35a8857936092c02401748277aaf9fa672a86aac90518cb50046791a32"
   license "MIT"
-  head "https://github.com/Yarden-zamir/kitshn.git", branch: "main"
+  head "https://github.com/Yarden-zamir/kitshn-1.git", branch: "main"
 
   depends_on "uv"
 
