@@ -10,7 +10,7 @@ Browse, filter and copy install commands at **[brew.yarden-zamir.com](https://br
 | [bookmarkctl](https://github.com/Yarden-zamir/bookmarkctl)               | Control Chrome bookmarks through a local FastAPI queue and CLI        | `brew install bookmarkctl`        |
 | [gh-source](https://github.com/Yarden-zamir/gh-source)                   | Plugin manager for people who don't like plugin managers              | `brew install gh-source`          |
 | [issuegator](https://github.com/Yarden-zamir/issuegator)                 | Rust TUI GitHub issue explorer for the current repository             | `brew install issuegator`         |
-| [kitshn](https://github.com/Yarden-zamir/kitshn)                         | Small VPS deployment system for GitHub repos                          | `brew install kitshn`             |
+| [kitshn1](https://github.com/Yarden-zamir/kitshn-1)                      | Small VPS deployment system for GitHub repos                          | `brew install kitshn1`            |
 | [navgator](https://github.com/Yarden-zamir/navgator)                     | Rust TUI project navigator with Git worktree and preview support      | `brew install navgator`           |
 | [sessiongator](https://github.com/Yarden-zamir/sessiongator)             | Rust TUI browser for AI coding sessions                               | `brew install sessiongator`       |
 | [wrap](https://github.com/Yarden-zamir/WRAP)                             | Generates 'wraps' for functions in any language using 'processors'    | `brew install wrap`               |

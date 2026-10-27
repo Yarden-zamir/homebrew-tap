@@ -5,6 +5,11 @@
       "template_path": ".homebrew/aism.rb",
       "template_ref": "main"
     },
+    "bookmarkctl": {
+      "repository": "Yarden-zamir/bookmarkctl",
+      "template_path": ".homebrew/bookmarkctl.rb",
+      "template_ref": "main"
+    },
     "gh-source": {
       "repository": "Yarden-zamir/gh-source",
       "template_path": ".homebrew/gh-source.rb",
@@ -15,9 +20,9 @@
       "template_path": ".homebrew/issuegator.rb",
       "template_ref": "main"
     },
-    "kitshn": {
-      "repository": "Yarden-zamir/kitshn",
-      "template_path": ".homebrew/kitshn.rb",
+    "kitshn1": {
+      "repository": "Yarden-zamir/kitshn-1",
+      "template_path": ".homebrew/kitshn1.rb",
       "template_ref": "main"
     },
     "navgator": {
@@ -38,11 +43,6 @@
     "zsh-act-completion": {
       "repository": "Yarden-zamir/zsh-act-completion",
       "template_path": ".homebrew/zsh-act-completion.rb",
-      "template_ref": "main"
-    },
-    "bookmarkctl": {
-      "repository": "Yarden-zamir/bookmarkctl",
-      "template_path": ".homebrew/bookmarkctl.rb",
       "template_ref": "main"
     }
   }
